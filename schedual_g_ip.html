@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Jack's Schedule V14</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <style>
+        /* --- 基礎設定 --- */
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f0f2f5; margin: 0; padding: 12px; color: #333; }
+        
+        /* 卡片容器美化 */
+        .card { 
+            background: white; 
+            padding: 16px; 
+            border-radius: 16px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
+            margin-bottom: 16px; 
+            border: 1px solid #fff;
+        }
+        .hidden { display: none !important; }
+        
+        /* --- 標題區塊 (含版本號) --- */
+        .input-header { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
+        .input-header h2 { margin: 0; font-size: 1.4em; color: #2c3e50; }
+        .version-tag { 
+            font-size: 12px; background: #e9ecef; color: #666; 
+            padding: 3px 8px; border-radius: 12px; font-weight: bold; letter-spacing: 0.5px;
+        }
+
+        /* --- 輸入元件 --- */
+        .input-group { margin-bottom: 12px; }
+        label { display: block; margin-bottom: 5px; font-weight: 600; color: #555; font-size: 13px; }
+        input, select { 
+            width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; 
+            box-sizing: border-box; font-size: 16px; background: #f9f9f9; 
+            appearance: none; -webkit-appearance: none; transition: 0.2s;
+        }
+        input:focus, select:focus { background: #fff; border-color: #007bff; outline: none; }
+        
+        .row-inputs { display: flex; flex-wrap: wrap; gap: 12px; }
+        .col-half { flex: 1; min-width: 100%; } 
+        @media (min-width: 480px) { .col-half { min-width: 45%; } }
+
+        /* --- 按鈕優化 --- */
+        .btn { 
+            border: none; padding: 14px; border-radius: 10px; font-size: 15px; 
+            cursor: pointer; font-weight: 600; width: 100%; text-align: center; 
+            color: white; margin-bottom: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.1s, opacity 0.2s;
+        }
+        .btn:active { transform: scale(0.98); opacity: 0.9; }
+        .btn-primary { background: linear-gradient(135deg, #007bff, #0056b3); }
+        .btn-image { background: linear-gradient(135deg, #6610f2, #520dc2); }
+        .btn-warning { background: #ffc107; color: #333; }
+        .btn-info { background: #17a2b8; }
+        .btn-danger { background: #ff4d4f; }
+        .btn-secondary { background: #6c757d; }
+        
+        .btn-row { display: flex; gap: 8px; }
+        .btn-row .btn { font-size: 13px; padding: 10px; margin-bottom: 0; }
+        
+        /* 右上角工具列 */
+        .top-tools { margin-left: auto; display: flex; gap: 8px; }
+        .top-tools .btn { width: auto; padding: 6px 12px; font-size: 13px; margin: 0; box-shadow: none; border: 1px solid #ddd; background: #fff; color: #555;}
+
+        /* --- 固定行程設定區 --- */
+        .week-selector { display: flex; gap: 4px; margin-bottom: 12px; justify-content: space-between; }
+        .week-selector label { 
+            flex: 1; text-align: center; padding: 10px 0; background: #f8f9fa; 
+            border: 1px solid #eee; border-radius: 8px; font-size: 14px; cursor: pointer; transition: 0.2s;
+        }
+        .week-selector input:checked + span { color: #007bff; font-weight: bold; } 
+        .week-selector input { display: block; margin: 0 auto 4px auto; }
+        .fixed-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; }
+        .tag { background: #e9ecef; padding: 3px 8px; border-radius: 6px; font-size: 12px; margin-right: 6px; color: #555; font-weight: bold;}
+
+        /* --- 表格樣式 (V14 美化版) --- */
+        #captureArea { 
+            background: white; 
+            padding: 0; /* 移除內距讓表格貼邊 */
+            border-radius: 12px; 
+            overflow: hidden; /* 圓角裁切 */
+        }
+        
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            table-layout: fixed; 
+        } 
+        
+        th, td { 
+            padding: 10px 4px; 
+            vertical-align: middle; 
+            word-wrap: break-word;
+            /* 預設邊框 */
+            border-left: 1px solid #eee;
+            border-right: 1px solid #eee;
+        }
+
+        /* 日期分界線加粗 (Javascript 動態添加 class) */
+        tr.day-start td {
+            border-top: 3px solid #666 !important; /* 強制加粗 */
+        }
+        tr:not(.day-start) td {
+            border-top: 1px solid #eee; /* 同一天內的線細一點 */
+        }
+
+        /* 欄位配置 2:6:2 */
+        .col-combined { 
+            width: 20%; text-align: center; font-size: 13px; line-height: 1.4; 
+            color: #444; font-weight: 500; background-color: #fff;
+        } 
+        .col-item { width: 60%; font-size: 15px; padding: 10px 8px; } 
+        .col-loc { width: 20%; font-size: 12px; color: #666; text-align: center; }
+
+        /* Header 美化 */
+        .header-main { 
+            background: linear-gradient(to bottom, #e2efda, #d0e4c6); 
+            text-align: center; font-weight: 800; font-size: 1.4em; 
+            padding: 12px; border-bottom: 2px solid #555; color: #222;
+        }
+        .header-sub th { 
+            background-color: #f1f3f5; color: #495057; 
+            font-size: 13px; font-weight: bold; border-bottom: 2px solid #ddd;
+        }
+        
+        /* 週末底色 */
+        .is-weekend { background-color: #fafafa; color: #c0392b; }
+
+        /* 操作按鈕 */
+        .act-btns { float: right; margin-top: 4px; opacity: 0.6; transition: 0.2s;}
+        .col-item:hover .act-btns { opacity: 1; }
+        .act-btn { 
+            border: 1px solid #ddd; background: #fff; border-radius: 6px; 
+            width: 30px; height: 30px; font-size: 16px; margin-left: 6px; 
+            display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        /* 顏色標籤 (淡色系背景) */
+        .bg-none { background: transparent; }
+        .bg-yellow { background: #fffde7; border-left: 4px solid #fbc02d; }
+        .bg-red { background: #ffebee; border-left: 4px solid #ef5350; }
+        .bg-green { background: #e8f5e9; border-left: 4px solid #66bb6a; }
+        .bg-blue { background: #e3f2fd; border-left: 4px solid #42a5f5; }
+        .bg-orange { background: #fff3e0; border-left: 4px solid #ffa726; }
+        .bg-purple { background: #f3e5f5; border-left: 4px solid #ab47bc; }
+
+    </style>
+</head>
+<body>
+
+    <div id="settingsArea" class="card hidden">
+        <h3 style="margin-top:0">⚙️ 設定</h3>
+        <button class="btn btn-danger" onclick="hardReset()">⚠️ 重置所有資料 (修復異常)</button>
+        <div class="btn-row" style="margin-top:12px;">
+            <button class="btn btn-info" onclick="downloadBackup()">📥 備份</button>
+            <button class="btn btn-secondary" onclick="document.getElementById('restoreFile').click()">📤 還原</button>
+            <input type="file" id="restoreFile" style="display:none" onchange="restoreBackup(this)">
+        </div>
+        <hr>
+        <button class="btn btn-secondary" onclick="toggleSettings()">關閉</button>
+    </div>
+
+    <div id="fixedEditorArea" class="card hidden">
+        <h3 style="margin-top:0; color:#856404;">📝 固定行程</h3>
+        <div style="background: #fff8e1; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #ffeeba;">
+            <label>星期 (可複選)</label>
+            <div class="week-selector">
+                <label><input type="checkbox" value="1"><span>一</span></label>
+                <label><input type="checkbox" value="2"><span>二</span></label>
+                <label><input type="checkbox" value="3"><span>三</span></label>
+                <label><input type="checkbox" value="4"><span>四</span></label>
+                <label><input type="checkbox" value="5"><span>五</span></label>
+                <label><input type="checkbox" value="6"><span>六</span></label>
+                <label><input type="checkbox" value="0"><span>日</span></label>
+            </div>
+            <div class="row-inputs">
+                <div class="col-half"><label>時間 (例: 1400)</label><input type="tel" id="fixTime" maxlength="4" placeholder="1400"></div>
+                <div class="col-half"><label>地點</label><input type="text" id="fixLoc" placeholder="地點"></div>
+            </div>
+            <div style="margin-top:10px;"><label>事項</label><input type="text" id="fixContent" placeholder="例如: GYM"></div>
+            <div style="margin-top:12px;"><button class="btn btn-warning" onclick="addFixedRule()">新增規則</button></div>
+        </div>
+        <h4 style="margin-bottom:5px;">目前規則列表：</h4>
+        <div id="fixedRulesList"></div>
+        <br>
+        <button class="btn btn-secondary" onclick="toggleFixedEditor()">返回主畫面</button>
+    </div>
+
+    <div class="card" id="mainInputArea">
+        <div class="input-header">
+            <h2>📅 行程輸入</h2>
+            <span class="version-tag">V14</span>
+            <div class="top-tools">
+                <button class="btn" onclick="toggleFixedEditor()">⚙️ 固定</button>
+                <button class="btn" onclick="toggleSettings()">設定</button>
+            </div>
+        </div>
+
+        <div class="row-inputs">
+            <div class="col-half"><label>日期</label><input type="date" id="inputDate"></div>
+            <div class="col-half"><label>時間 (例: 0930)</label><input type="tel" id="inputTime" maxlength="4" placeholder="0930"></div>
+        </div>
+        <div class="input-group" style="margin-top:10px;"><label>事項內容</label><input type="text" id="inputItem" placeholder="輸入事項..."></div>
+        <div class="row-inputs">
+            <div class="col-half"><label>地點</label><input type="text" id="inputLoc" placeholder="地點"></div>
+            <div class="col-half"><label>顏色</label>
+                <select id="inputColor">
+                    <option value="none">無色</option><option value="yellow">🟡 黃色</option><option value="red">🔴 紅色</option>
+                    <option value="green">🟢 綠色</option><option value="blue">🔵 藍色</option><option value="orange">🟠 橘色</option><option value="purple">🟣 紫色</option>
+                </select>
+            </div>
+        </div>
+        <button class="btn btn-primary" style="margin-top:15px;" onclick="addSchedule()">➕ 加入 / 更新行程</button>
+    </div>
+
+    <div class="btn-row" style="margin-bottom:15px;">
+        <button class="btn btn-image" onclick="exportImage()">📸 下載圖片</button>
+        <button class="btn btn-secondary" style="background:#6c757d" onclick="deletePast()">🧹 清除過期</button>
+        <button class="btn btn-danger" onclick="clearData()">🗑️ 清空</button>
+    </div>
+
+    <div class="card" style="padding:0; border:none; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <div id="captureArea">
+            <table id="scheduleTable">
+                <colgroup>
+                    <col style="width: 20%;">
+                    <col style="width: 60%;">
+                    <col style="width: 20%;">
+                </colgroup>
+                <thead>
+                    <tr><td colspan="3" class="header-main">Jack's Schedule</td></tr>
+                    <tr><td colspan="3" style="text-align:right; font-size:11px; border:none; padding:6px; color:#666; background:#f9f9f9;" id="updateDate">updated: </td></tr>
+                    <tr class="header-sub">
+                        <th class="col-combined">日期</th>
+                        <th class="col-item" style="text-align: center;">事項內容</th>
+                        <th class="col-loc" style="text-align: center;">地點</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. 初始化資料 ---
+        const DB_KEY_SCHEDULE = 'jack_schedule_v14';
+        const DB_KEY_RULES = 'jack_rules_v14';
+
+        const defaultRules = [
+            { days:[1,3,5], time:"1130", content:"GYM", loc:"" },
+            { days:[2], time:"1400", content:"開會 (隊長)", loc:"" },
+            { days:[3], time:"1400", content:"開會 (JLL)", loc:"" },
+            { days:[3], time:"1510", content:"推拿", loc:"" },
+            { days:[4], time:"1600", content:"部門主管開會", loc:"" },
+            { days:[5], time:"1400", content:"工程行場", loc:"" },
+            { days:[5], time:"1500", content:"工程會議", loc:"" }
+        ];
+
+        let schedules = []; let fixedRules = [];
+
+        function initApp() {
+            try {
+                const sData = localStorage.getItem(DB_KEY_SCHEDULE);
+                const rData = localStorage.getItem(DB_KEY_RULES);
+                schedules = sData ? JSON.parse(sData) : [];
+                if (!rData) { fixedRules = JSON.parse(JSON.stringify(defaultRules)); saveData(); } else { fixedRules = JSON.parse(rData); }
+                document.getElementById('inputDate').valueAsDate = new Date();
+                renderTable();
+            } catch (e) { console.error("Init Error:", e); alert("資料讀取錯誤，正在重置..."); hardReset(); }
+        }
+
+        function saveData() {
+            localStorage.setItem(DB_KEY_SCHEDULE, JSON.stringify(schedules));
+            localStorage.setItem(DB_KEY_RULES, JSON.stringify(fixedRules));
+        }
+
+        // --- 2. 核心邏輯 ---
+        const weekMap = ['週日', '週一', '週二', '週三', '週四', '週五', '週六'];
+        function getTodayZero() { const d = new Date(); d.setHours(0,0,0,0); return d; }
+        function strToDate(s) { if(!s) return new Date(); const p=s.split('-'); return new Date(p[0], p[1]-1, p[2]); }
+        function formatDateShow(d) { return (d.getMonth()+1) + '/' + d.getDate(); }
+        function formatTimeInput(val) { if(!val) return ""; val = val.replace(/[^0-9]/g, ''); if(val.length === 3) val = "0" + val; if(val.length === 4) { let h = val.substring(0,2); let m = val.substring(2,4); if(parseInt(h)>23) h="23"; if(parseInt(m)>59) m="59"; return h + ":" + m; } return ""; }
+        function displayTime(t) { if(!t) return ""; let [hh, mm] = t.split(':'); let h = parseInt(hh); let p = h >= 12 ? 'PM' : 'AM'; h = h % 12; if(h===0) h=12; return `${h}:${mm} ${p}`; }
+
+        function renderTable() {
+            const tbody = document.getElementById('tableBody'); tbody.innerHTML = ''; const today = getTodayZero();
+            autoFill(today);
+            schedules.sort((a,b) => { if(a.date !== b.date) return strToDate(a.date) - strToDate(b.date); return (a.time||"") > (b.time||"") ? 1 : -1; });
+            const now = new Date(); document.getElementById('updateDate').innerText = 'updated: ' + (now.getMonth()+1)+'/'+now.getDate();
+
+            let renderedIdx = [];
+            for(let i=0; i<7; i++) {
+                let d = new Date(today); d.setDate(today.getDate()+i);
+                let dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+                let dayEvents = schedules.filter((s, idx) => { if(s.date === dateStr) { s._idx = idx; return true; } return false; });
+
+                let combinedDateStr = `<strong>${formatDateShow(d)}</strong><br>${weekMap[d.getDay()]}`;
+                
+                // 判斷是否為週末，加上樣式
+                let isWeekend = (d.getDay() === 0 || d.getDay() === 6) ? 'is-weekend' : '';
+
+                if(dayEvents.length === 0) {
+                    // 空白日：加上 day-start class 以顯示粗線
+                    tbody.innerHTML += `<tr class="day-start"><td class="col-combined ${isWeekend}">${combinedDateStr}</td><td class="col-item"></td><td class="col-loc"></td></tr>`;
+                } else {
+                    let first = true;
+                    dayEvents.forEach(evt => {
+                        renderedIdx.push(evt._idx);
+                        let contentHtml = evt.content;
+                        if(evt.time) contentHtml = `<strong>${displayTime(evt.time)}</strong> - ${evt.content}`;
+                        let combinedHtml = first ? combinedDateStr : ''; 
+                        
+                        // 關鍵邏輯：第一筆行程加上 day-start class
+                        let rowClass = `bg-${evt.color}`;
+                        if (first) rowClass += ' day-start';
+
+                        let rowHtml = `<tr class="${rowClass}">
+                            <td class="col-combined ${isWeekend}">${combinedHtml}</td>
+                            <td class="col-item">
+                                ${contentHtml}
+                                <div class="act-btns" data-html2canvas-ignore="true">
+                                    <button class="act-btn" onclick="editItem(${evt._idx})" style="color:blue">✎</button>
+                                    <button class="act-btn" onclick="delItem(${evt._idx})" style="color:red">x</button>
+                                </div>
+                            </td>
+                            <td class="col-loc">${evt.location}</td>
+                        </tr>`;
+                        tbody.innerHTML += rowHtml;
+                        first = false;
+                    });
+                }
+            }
+            
+            // 後續行程
+            let future = schedules.filter((s, idx) => !renderedIdx.includes(idx) && strToDate(s.date) >= today);
+            if(future.length > 0) {
+                // 後續行程標題行，加上粗線
+                tbody.innerHTML += `<tr class="day-start"><td colspan="3" style="background:#4472C4; color:white; font-weight:bold; text-align:center; padding:8px; font-size:13px;">後續行程</td></tr>`;
+                let lastD = '';
+                let isFirstFuture = true;
+
+                future.forEach((evt) => {
+                    let d = strToDate(evt.date); let dStr = formatDateShow(d);
+                    
+                    // 判斷是否為新的一天
+                    let isNewDay = (dStr !== lastD);
+                    let combinedHtml = isNewDay ? `<strong>${dStr}</strong><br>${weekMap[d.getDay()]}` : '';
+                    lastD = dStr;
+                    
+                    let contentHtml = evt.time ? `<strong>${displayTime(evt.time)}</strong> - ${evt.content}` : evt.content;
+                    let realIdx = schedules.indexOf(evt);
+
+                    // 如果是新的一天，或是整個區塊的第一筆（通常標題已經擋住了，所以這邊主要是新的一天），加粗線
+                    // 這裡讓標題下方第一筆不加粗，但不同日期的後續行程加粗
+                    let rowClass = `bg-${evt.color}`;
+                    if (isNewDay && !isFirstFuture) {
+                         rowClass += ' day-start';
+                    }
+
+                    tbody.innerHTML += `<tr class="${rowClass}">
+                        <td class="col-combined">${combinedHtml}</td>
+                        <td class="col-item">
+                            ${contentHtml}
+                            <div class="act-btns" data-html2canvas-ignore="true">
+                                <button class="act-btn" onclick="editItem(${realIdx})" style="color:blue">✎</button>
+                                <button class="act-btn" onclick="delItem(${realIdx})" style="color:red">x</button>
+                            </div>
+                        </td>
+                        <td class="col-loc">${evt.location}</td>
+                    </tr>`;
+                    isFirstFuture = false;
+                });
+            }
+        }
+
+        function autoFill(today) {
+            let change = false;
+            for(let i=0; i<7; i++) {
+                let d = new Date(today); d.setDate(today.getDate()+i); let w = d.getDay();
+                let dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+                fixedRules.forEach(r => {
+                    if(r.days.includes(w)) {
+                        let t = formatTimeInput(r.time);
+                        let exists = schedules.some(s => s.date === dateStr && s.content === r.content && s.time === t);
+                        if(!exists) { schedules.push({ date: dateStr, time: t, content: r.content, location: r.loc, color: 'none', isFixed: true }); change = true; }
+                    }
+                });
+            }
+            if(change) saveData();
+        }
+
+        // --- 3. 操作功能 ---
+        function addSchedule() {
+            let d = document.getElementById('inputDate').value; let t = document.getElementById('inputTime').value;
+            let c = document.getElementById('inputItem').value; let l = document.getElementById('inputLoc').value;
+            let col = document.getElementById('inputColor').value;
+            if(!d || !c) { alert('請輸入日期和事項'); return; }
+            schedules.push({ date: d, time: formatTimeInput(t), content: c, location: l, color: col });
+            saveData(); renderTable();
+            document.getElementById('inputItem').value = ''; document.getElementById('inputLoc').value = '';
+            document.getElementById('inputTime').value = ''; document.getElementById('inputColor').value = 'none';
+        }
+
+        function delItem(idx) { if(confirm('刪除此事項？')) { schedules.splice(idx, 1); saveData(); renderTable(); } }
+        function editItem(idx) {
+            let s = schedules[idx]; document.getElementById('inputDate').value = s.date;
+            document.getElementById('inputTime').value = s.time ? s.time.replace(':','') : '';
+            document.getElementById('inputItem').value = s.content; document.getElementById('inputLoc').value = s.location;
+            document.getElementById('inputColor').value = s.color; schedules.splice(idx, 1); saveData(); renderTable(); window.scrollTo({top:0, behavior:'smooth'});
+        }
+        function deletePast() { if(confirm('清除過期行程？')) { let today = getTodayZero(); schedules = schedules.filter(s => strToDate(s.date) >= today); saveData(); renderTable(); } }
+        function clearData() { if(confirm('清空所有行程？')) { schedules = []; saveData(); renderTable(); } }
+
+        // --- 4. 固定行程管理 ---
+        function toggleFixedEditor() {
+            let area = document.getElementById('fixedEditorArea'); let main = document.getElementById('mainInputArea');
+            if(area.classList.contains('hidden')) { area.classList.remove('hidden'); main.classList.add('hidden'); renderFixedList(); } else { area.classList.add('hidden'); main.classList.remove('hidden'); }
+        }
+        function addFixedRule() {
+            let cbs = document.querySelectorAll('.week-selector input:checked'); let days = Array.from(cbs).map(cb => parseInt(cb.value));
+            let t = document.getElementById('fixTime').value; let c = document.getElementById('fixContent').value; let l = document.getElementById('fixLoc').value;
+            if(days.length===0 || !c) { alert('請選星期並輸入事項'); return; }
+            fixedRules.push({ days: days, time: t, content: c, loc: l }); saveData(); renderFixedList();
+            document.getElementById('fixContent').value = ''; document.getElementById('fixLoc').value = '';
+        }
+        function delFixedRule(idx) {
+            if(confirm('刪除規則會一併刪除對應的自動行程，確定？')) {
+                let r = fixedRules[idx]; let rt = formatTimeInput(r.time);
+                schedules = schedules.filter(s => { if(!s.isFixed) return true; if(s.content === r.content && s.time === rt) return false; return true; });
+                fixedRules.splice(idx, 1); saveData(); renderFixedList(); renderTable();
+            }
+        }
+        function renderFixedList() {
+            let div = document.getElementById('fixedRulesList'); div.innerHTML = '';
+            fixedRules.forEach((r, i) => {
+                let dStr = r.days.map(d => weekMap[d].replace('週','')).join(','); let tStr = r.time ? formatTimeInput(r.time) : '';
+                div.innerHTML += `<div class="fixed-item"><div style="font-size:14px;"><span class="tag">週${dStr}</span> <b>${tStr}</b> ${r.content}</div><button class="btn btn-danger" style="width:auto; padding:5px 10px; margin:0; font-size:12px;" onclick="delFixedRule(${i})">刪</button></div>`;
+            });
+        }
+
+        // --- 5. 系統功能 ---
+        function toggleSettings() { document.getElementById('settingsArea').classList.toggle('hidden'); }
+        function hardReset() { if(confirm('這會刪除所有資料並重置為預設值，確定嗎？')) { localStorage.removeItem(DB_KEY_SCHEDULE); localStorage.removeItem(DB_KEY_RULES); location.reload(); } }
+        function exportImage() { let el = document.getElementById("captureArea"); html2canvas(el, { scale: 2, backgroundColor: "#ffffff" }).then(canvas => { let link = document.createElement('a'); link.download = 'Schedule.png'; link.href = canvas.toDataURL("image/png"); link.click(); }); }
+        function downloadBackup() { let data = { s: schedules, r: fixedRules }; let dl = document.createElement('a'); dl.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data)); dl.download = "backup.json"; dl.click(); }
+        function restoreBackup(input) { let file = input.files[0]; if(!file) return; let reader = new FileReader(); reader.onload = function(e) { try { let d = JSON.parse(e.target.result); if(d.s) schedules = d.s; if(d.r) fixedRules = d.r; saveData(); renderTable(); alert('還原成功'); } catch(err) { alert('檔案錯誤'); } }; reader.readAsText(file); }
+
+        initApp();
+    </script>
+</body>
+</html>
