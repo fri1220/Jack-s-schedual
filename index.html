@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Jack's Schedule V20 (Remastered)</title>
+    <title>Jack's Schedule V23 (Final CN)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
-        /* --- 變數與基礎設定 --- */
+        /* --- 樣式設定 (V23 Style) --- */
         :root {
-            --primary-color: #4f46e5; /* 靛藍 */
+            --primary-color: #4f46e5;
             --primary-light: #eef2ff;
             --bg-color: #f3f4f6;
             --card-bg: #ffffff;
@@ -17,40 +17,30 @@
             --text-sub: #6b7280;
             --border-radius: 16px;
             --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            --shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
 
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
             background: var(--bg-color); 
-            margin: 0; 
-            padding: 16px; 
-            color: var(--text-main);
-            line-height: 1.5;
+            margin: 0; padding: 16px; 
+            color: var(--text-main); line-height: 1.5;
         }
 
-        /* --- 卡片容器 --- */
         .card { 
-            background: var(--card-bg); 
-            padding: 20px; 
-            border-radius: var(--border-radius); 
-            box-shadow: var(--shadow); 
-            margin-bottom: 20px; 
-            border: 1px solid rgba(255,255,255,0.7);
-            transition: transform 0.2s ease;
+            background: var(--card-bg); padding: 20px; 
+            border-radius: var(--border-radius); box-shadow: var(--shadow); 
+            margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.7);
         }
         
         .hidden { display: none !important; }
 
-        /* --- 標題區 --- */
+        /* Header & Tools */
         .input-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-        .header-title h2 { margin: 0; font-size: 1.5em; color: #111827; letter-spacing: -0.025em; }
+        .header-title h2 { margin: 0; font-size: 1.5em; color: #111827; }
         .version-tag { 
             font-size: 10px; background: #e0e7ff; color: var(--primary-color); 
-            padding: 2px 8px; border-radius: 99px; font-weight: 700; text-transform: uppercase; 
-            vertical-align: middle; margin-left: 8px;
+            padding: 2px 8px; border-radius: 99px; font-weight: 700; vertical-align: middle; margin-left: 8px;
         }
-        
         .top-tools { display: flex; gap: 8px; }
         .top-btn { 
             background: white; border: 1px solid #e5e7eb; color: var(--text-sub); 
@@ -59,116 +49,71 @@
             font-size: 16px; transition: 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
         .top-btn:active { transform: scale(0.95); background: #f9fafb; }
-        .top-btn:hover { color: var(--primary-color); border-color: var(--primary-color); }
 
-        /* --- 模式選擇器 (Segmented Control) --- */
-        .mode-selector { 
-            display: flex; background: #e5e7eb; padding: 4px; border-radius: 12px; margin-bottom: 20px;
-        }
+        /* Inputs */
+        .mode-selector { display: flex; background: #e5e7eb; padding: 4px; border-radius: 12px; margin-bottom: 20px; }
         .mode-label { 
             flex: 1; text-align: center; padding: 8px 0; cursor: pointer; 
             border-radius: 8px; font-size: 13px; font-weight: 600; color: #6b7280; 
-            transition: all 0.2s ease; position: relative; z-index: 1;
+            transition: all 0.2s ease;
         }
         .mode-selector input { display: none; }
-        .mode-selector input:checked + div { 
-            background: white; color: var(--primary-color); 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
-        }
-        #modeReminder:checked + div { color: #9333ea; } /* 紫色提醒 */
+        .mode-selector input:checked + div { background: white; color: var(--primary-color); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        #modeReminder:checked + div { color: #9333ea; }
         
-        /* --- 輸入元件 --- */
         .input-group { margin-bottom: 16px; }
         label { display: block; margin-bottom: 6px; font-weight: 600; color: #374151; font-size: 13px; }
-        
         input[type="text"], input[type="tel"], input[type="date"], select { 
-            width: 100%; padding: 12px 16px; 
-            border: 1px solid #d1d5db; border-radius: 12px; 
+            width: 100%; padding: 12px 16px; border: 1px solid #d1d5db; border-radius: 12px; 
             box-sizing: border-box; font-size: 16px; background: #f9fafb; 
-            color: #111827; transition: 0.2s; -webkit-appearance: none;
+            color: #111827; -webkit-appearance: none;
         }
-        input:focus, select:focus { 
-            background: #fff; border-color: var(--primary-color); 
-            outline: none; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); 
-        }
-        input:disabled { background: #f3f4f6; color: #9ca3af; border-color: #e5e7eb; }
-
+        input:focus { background: #fff; border-color: var(--primary-color); outline: none; }
+        
         .row-inputs { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 12px; }
         .col-half { flex: 1; min-width: 140px; } 
 
-        /* --- 按鈕 --- */
+        /* Buttons */
         .btn { 
             border: none; padding: 14px; border-radius: 12px; font-size: 15px; 
             cursor: pointer; font-weight: 600; width: 100%; text-align: center; 
-            color: white; margin-bottom: 12px; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            color: white; margin-bottom: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             transition: transform 0.1s, opacity 0.2s;
-            display: flex; align-items: center; justify-content: center; gap: 6px;
         }
         .btn:active { transform: scale(0.97); opacity: 0.9; }
-        
         .btn-primary { background: linear-gradient(135deg, #4f46e5, #4338ca); }
         .btn-image { background: linear-gradient(135deg, #7c3aed, #6d28d9); }
         .btn-warning { background: #fbbf24; color: #78350f; }
         .btn-info { background: #06b6d4; }
         .btn-danger { background: #ef4444; }
         .btn-secondary { background: #6b7280; box-shadow: none; }
-        
         .btn-row { display: flex; gap: 12px; }
         .btn-row .btn { font-size: 14px; padding: 12px; margin-bottom: 0; }
 
-        /* --- 表格與顯示區 (Capture Area) --- */
-        #captureArea { 
-            background: white; padding: 0; border-radius: var(--border-radius); 
-            overflow: hidden; border: 1px solid #e5e7eb;
-        }
+        /* Table */
+        #captureArea { background: white; padding: 0; border-radius: var(--border-radius); overflow: hidden; border: 1px solid #e5e7eb; }
         table { width: 100%; border-collapse: collapse; table-layout: fixed; } 
-        
-        th, td { 
-            padding: 14px 8px; vertical-align: middle; word-wrap: break-word; 
-            border-bottom: 1px solid #f3f4f6; /* 只留底線 */
-        }
+        th, td { padding: 14px 8px; vertical-align: middle; word-wrap: break-word; border-bottom: 1px solid #f3f4f6; }
         tr:last-child td { border-bottom: none; }
-
-        /* 分隔線強化 */
         tr.day-start td { border-top: 2px solid #e5e7eb !important; }
 
-        /* 表格內容樣式 */
-        .col-combined { 
-            width: 18%; text-align: center; font-size: 12px; line-height: 1.4; 
-            color: #6b7280; font-weight: 600; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-        } 
+        .col-combined { width: 18%; text-align: center; font-size: 12px; line-height: 1.4; color: #6b7280; font-weight: 600; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; } 
         .col-combined strong { font-size: 15px; color: #111827; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
-
         .col-item { width: 62%; font-size: 15px; padding-left: 12px; color: #374151; } 
         .col-loc { width: 20%; font-size: 12px; color: #9ca3af; text-align: center; font-weight: 500; }
 
-        /* 表頭美化 */
-        .header-main { 
-            background: linear-gradient(135deg, #ecfdf5, #d1fae5); 
-            color: #065f46;
-            text-align: center; font-weight: 800; font-size: 1.6em; padding: 20px; 
-            letter-spacing: 0.5px; border-bottom: none;
-        }
-        .header-sub th { 
-            background-color: #fef9c3; color: #854d0e; 
-            font-size: 13px; font-weight: 700; padding: 8px; 
-            border-bottom: 1px solid #e5e7eb; text-transform: uppercase;
-        }
+        .header-main { background: linear-gradient(135deg, #ecfdf5, #d1fae5); color: #065f46; text-align: center; font-weight: 800; font-size: 1.6em; padding: 20px; }
+        .header-sub th { background-color: #fef9c3; color: #854d0e; font-size: 13px; font-weight: 700; padding: 8px; border-bottom: 1px solid #e5e7eb; }
         .is-weekend { color: #ef4444; }
 
-        /* 操作按鈕 (編輯/刪除) */
-        .act-btns { float: right; margin-left: 8px; display: flex; gap: 4px; opacity: 0.4; transition: opacity 0.2s; }
+        .act-btns { float: right; margin-left: 8px; display: flex; gap: 4px; opacity: 0.4; }
         .col-item:hover .act-btns { opacity: 1; }
         .act-btn { 
             border: 1px solid #e5e7eb; background: #fff; border-radius: 6px; 
-            width: 24px; height: 24px; font-size: 12px; 
-            display: inline-flex; align-items: center; justify-content: center; 
-            cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            width: 24px; height: 24px; font-size: 12px; display: inline-flex; 
+            align-items: center; justify-content: center; cursor: pointer;
         }
-        .act-btn:hover { background: #f9fafb; transform: scale(1.1); }
 
-        /* 顏色標籤 (使用柔和色) */
         .bg-none { background: transparent; }
         .bg-yellow { background: #fefce8; border-left: 4px solid #facc15; }
         .bg-red { background: #fef2f2; border-left: 4px solid #f87171; }
@@ -177,28 +122,21 @@
         .bg-orange { background: #fff7ed; border-left: 4px solid #fb923c; }
         .bg-purple { background: #faf5ff; border-left: 4px solid #a855f7; }
 
-        /* 清單與設定頁面項目 */
-        .manage-item { 
-            display: flex; justify-content: space-between; align-items: center; 
-            padding: 12px 0; border-bottom: 1px solid #f3f4f6; 
-        }
-        .manage-item:last-child { border-bottom: none; }
+        /* Manage Items */
+        .manage-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f3f4f6; }
         .tag { background: #f3f4f6; padding: 4px 8px; border-radius: 6px; font-size: 12px; color: #4b5563; font-weight: 600;}
 
-        /* 星期選擇器 */
+        /* Week Selector */
         .week-selector { display: flex; gap: 4px; margin-bottom: 16px; justify-content: space-between; }
         .week-selector label { 
             flex: 1; text-align: center; padding: 12px 0; background: #fff; 
             border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; cursor: pointer;
             transition: 0.2s;
         }
-        .week-selector label:has(input:checked) {
-            background: #eff6ff; border-color: var(--primary-color); color: var(--primary-color);
-        }
+        .week-selector label:has(input:checked) { background: #eff6ff; border-color: var(--primary-color); color: var(--primary-color); }
         .week-selector input { display: none; }
         .week-selector span { display: block; font-weight: 600; }
         
-        /* 浮動更新時間 */
         #updateDate { font-family: monospace; opacity: 0.6; }
 
     </style>
@@ -213,7 +151,7 @@
         <div class="btn-row" style="margin-top:12px;">
             <button class="btn btn-info" onclick="downloadBackup()">📥 備份 (Backup)</button>
             <button class="btn btn-secondary" onclick="document.getElementById('restoreFile').click()">📤 還原 (Restore)</button>
-            <input type="file" id="restoreFile" style="display:none" onchange="restoreBackup(this)">
+            <input type="file" id="restoreFile" accept=".json,application/json" style="display:none" onchange="restoreBackup(this)">
         </div>
         <hr style="border:0; border-top:1px solid #eee; margin: 20px 0;">
         <button class="btn btn-secondary" onclick="toggleSettings()">關閉選單</button>
@@ -232,6 +170,7 @@
 
     <div id="fixedEditorArea" class="card hidden">
         <h3 style="margin-top:0; color:#b45309;">📝 固定行程規則</h3>
+        <p style="font-size:13px; color:#666;">在此設定的規則將會自動產生未來 90 天的行程。</p>
         <div style="background: #fffbeb; padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #fcd34d;">
             <label>選擇星期</label>
             <div class="week-selector">
@@ -260,7 +199,7 @@
         <div class="input-header">
             <div class="header-title">
                 <h2>📅 行程輸入</h2>
-                <span class="version-tag">V20</span>
+                <span class="version-tag">V23</span>
             </div>
             <div class="top-tools">
                 <button class="top-btn" onclick="toggleLocEditor()" title="地點管理">📍</button>
@@ -330,9 +269,9 @@
                     <tr><td colspan="3" class="header-main">Jack's Schedule</td></tr>
                     <tr><td colspan="3" style="text-align:right; font-size:11px; border:none; padding:8px 12px; color:#6b7280; background:#f9fafb;" id="updateDate">updated: </td></tr>
                     <tr class="header-sub">
-                        <th class="col-combined">DATE</th>
-                        <th class="col-item" style="text-align: left; padding-left:12px;">EVENT</th>
-                        <th class="col-loc" style="text-align: center;">LOC</th>
+                        <th class="col-combined">日期</th>
+                        <th class="col-item" style="text-align: left; padding-left:12px;">事項</th>
+                        <th class="col-loc" style="text-align: center;">地點</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody"></tbody>
@@ -341,55 +280,12 @@
     </div>
 
     <script>
-        // --- 1. 初始化資料 (V20 更新：預載大量資料) ---
-        const DB_KEY_SCHEDULE = 'jack_schedule_v20'; // 換Key以強制更新資料
-        const DB_KEY_RULES = 'jack_rules_v20';
-        const DB_KEY_LOCS = 'jack_locs_v20';
+        const DB_KEY_SCHEDULE = 'jack_schedule_v21'; 
+        const DB_KEY_RULES = 'jack_rules_v21';
+        const DB_KEY_LOCS = 'jack_locs_v21';
 
-        const defaultRules = [
-            { days:[1,3,5], time:"1130", content:"GYM", loc:"" },
-            { days:[2], time:"1400", content:"開會 (隊長)", loc:"" },
-            { days:[3], time:"1400", content:"開會 (JLL)", loc:"" },
-            { days:[3], time:"1510", content:"推拿", loc:"" },
-            { days:[4], time:"1600", content:"部門主管開會", loc:"" },
-            { days:[5], time:"1400", content:"工程行場", loc:"" },
-            { days:[5], time:"1500", content:"工程會議", loc:"" }
-        ];
-
-        const defaultLocs = [
-            "十三酒店", "利澳酒店", "喜粵8號", "蓮-大潭山", 
-            "公司", "家裡", "MGM", "皇冠假日酒店", "中原", "永利", "喜粵8號v1"
-        ];
-
-        // V20 預設行程資料
-        const presetSchedules = [
-            { date: "2025-12-29", time: "09:30", content: "Ken哥來訪", location: "", color: "none" },
-            { date: "2025-12-29", time: "11:30", content: "GYM", location: "", color: "none" },
-            { date: "2025-12-29", time: "14:00", content: "開會 (Sunny)", location: "", color: "none" },
-            { date: "2025-12-29", time: "17:00", content: "Spa meeting", location: "", color: "none" },
-            { date: "2025-12-30", time: "14:00", content: "開會 (隊長)", location: "", color: "none" },
-            { date: "2025-12-30", time: "16:00", content: "部門主管開會", location: "", color: "none" },
-            { date: "2025-12-30", time: "19:00", content: "宴客(陳安安醫生)", location: "蓮-大潭山", color: "yellow" },
-            { date: "2025-12-31", time: "11:30", content: "GYM", location: "", color: "none" },
-            { date: "2025-12-31", time: "14:00", content: "開會(JLL)", location: "", color: "none" },
-            { date: "2025-12-31", time: "15:10", content: "推拿", location: "", color: "none" },
-            { date: "2026-01-01", time: "", content: "元旦", location: "", color: "red" },
-            { date: "2026-01-01", time: "09:00", content: "上中山", location: "", color: "yellow" },
-            { date: "2026-01-02", time: "11:30", content: "GYM", location: "", color: "none" },
-            { date: "2026-01-02", time: "15:00", content: "睇音響", location: "", color: "none" },
-            { date: "2026-01-02", time: "15:30", content: "工程行場", location: "", color: "none" },
-            { date: "2026-01-02", time: "16:30", content: "工程會議", location: "", color: "none" },
-            { date: "2026-01-02", time: "19:00", content: "宴客(阿Sir)", location: "喜粵8號v1", color: "yellow" },
-            { date: "2026-01-13", time: "19:00", content: "中原地產晚宴", location: "皇冠假日酒店-2樓明珠殿", color: "none" },
-            { date: "2026-01-17", time: "", content: "芊羽生日", location: "", color: "none" },
-            { date: "2026-01-23", time: "19:00", content: "宴客 (永利Linda)", location: "蓮-大潭山", color: "none" },
-            { date: "2026-01-27", time: "", content: "嘉豪生日", location: "", color: "none" },
-            { date: "2026-02-16", time: "", content: "團年飯", location: "喜粵8號宴會廳", color: "none" },
-            { date: "2026-02-18", time: "", content: "年初二中午飲茶", location: "喜粵8號v1", color: "none" },
-            { date: "2026-02-19", time: "", content: "年初三中午飲茶", location: "喜粵8號v1", color: "none" },
-            { date: "TBD", time: "", content: "MGM取珠寶", location: "", color: "green" },
-            { date: "TBD", time: "", content: "有啖好食", location: "", color: "none" }
-        ];
+        const defaultRules = [{ days:[1,3,5], time:"1130", content:"GYM", loc:"" }];
+        const defaultLocs = ["公司", "家裡", "喜粵8號", "蓮-大潭山", "MGM", "皇冠假日酒店"];
 
         let schedules = []; let fixedRules = []; let savedLocs = [];
 
@@ -399,25 +295,15 @@
                 const rData = localStorage.getItem(DB_KEY_RULES);
                 const lData = localStorage.getItem(DB_KEY_LOCS);
 
-                // 如果是第一次使用 V20，載入預設資料
-                if (!sData) {
-                    schedules = JSON.parse(JSON.stringify(presetSchedules));
-                    saveData();
-                } else {
-                    schedules = JSON.parse(sData);
-                }
-
+                if (sData) schedules = JSON.parse(sData);
                 if (!rData) { fixedRules = JSON.parse(JSON.stringify(defaultRules)); saveData(); } else { fixedRules = JSON.parse(rData); }
                 if (!lData) { savedLocs = JSON.parse(JSON.stringify(defaultLocs)); saveData(); } else { savedLocs = JSON.parse(lData); }
 
-                // 預設日期設為 2025-12-28 讓使用者看到效果 (通常設為今天)
-                // document.getElementById('inputDate').value = "2025-12-28";
                 document.getElementById('inputDate').valueAsDate = new Date();
-                
                 toggleInputMode();
                 updateLocDatalist();
                 renderTable();
-            } catch (e) { hardReset(); }
+            } catch (e) { console.error(e); }
         }
 
         function saveData() {
@@ -426,26 +312,11 @@
             localStorage.setItem(DB_KEY_LOCS, JSON.stringify(savedLocs));
         }
 
-        function toggleDateInput() {
-            const isTBD = document.getElementById('dateTBD').checked;
-            document.getElementById('inputDate').disabled = isTBD;
-            document.getElementById('inputTime').disabled = isTBD;
-            if (isTBD) {
-                document.getElementById('inputDate').style.backgroundColor = '#eee';
-                document.getElementById('inputTime').style.backgroundColor = '#eee';
-            } else {
-                document.getElementById('inputDate').style.backgroundColor = '#fff';
-                document.getElementById('inputTime').style.backgroundColor = '#fff';
-            }
-        }
-
         function toggleInputMode() {
             const mode = document.querySelector('input[name="inputMode"]:checked').value;
             const isDateMode = (mode === 'DATE');
-            
             document.getElementById('inputDate').disabled = !isDateMode;
             document.getElementById('inputTime').disabled = !isDateMode;
-            
             if (!isDateMode) {
                 document.getElementById('inputDate').value = ''; 
                 document.getElementById('inputTime').value = '';
@@ -455,48 +326,84 @@
         }
 
         const weekMap = ['週日', '週一', '週二', '週三', '週四', '週五', '週六'];
-        function getTodayZero() { 
-            // 為了展示您的 2025 行程，這裡暫時將「今天」視為 2025/12/28
-            // 如果要改回真實今天，請用: return new Date(new Date().setHours(0,0,0,0));
-            // 這裡用真實日期，因為您的資料是未來的
-            const d = new Date(); d.setHours(0,0,0,0); return d; 
-        }
+        function getTodayZero() { const d = new Date(); d.setHours(0,0,0,0); return d; }
         function strToDate(s) { 
             if(!s || s==='TBD' || s==='REMINDER') return new Date(9999, 11, 31); 
             const p=s.split('-'); return new Date(p[0], p[1]-1, p[2]); 
         }
         function formatDateShow(d) { return (d.getMonth()+1) + '/' + d.getDate(); }
         function formatTimeInput(val) { if(!val) return ""; val = val.replace(/[^0-9]/g, ''); if(val.length === 3) val = "0" + val; if(val.length === 4) { let h = val.substring(0,2); let m = val.substring(2,4); if(parseInt(h)>23) h="23"; if(parseInt(m)>59) m="59"; return h + ":" + m; } return ""; }
-        function displayTime(t) { if(!t) return ""; let [hh, mm] = t.split(':'); let h = parseInt(hh); let p = h >= 12 ? 'PM' : 'AM'; h = h % 12; if(h===0) h=12; return `${h}:${mm} ${p}`; }
+
+        // V23 FIX: 增強版時間顯示，解決 undefined 問題
+        function displayTime(t) { 
+            if(!t) return ""; 
+            // 移除可能存在的非數字字符 (除了冒號)
+            let cleanRaw = t.replace(/[^0-9:]/g, '');
+            
+            // 如果輸入是 "1600" 這種純數字格式
+            if(cleanRaw.indexOf(':') === -1 && cleanRaw.length === 4) {
+                cleanRaw = cleanRaw.substring(0,2) + ":" + cleanRaw.substring(2);
+            }
+            
+            let [hh, mm] = cleanRaw.split(':'); 
+            if(!hh) hh = "00";
+            if(!mm) mm = "00"; 
+            
+            let h = parseInt(hh); 
+            let p = h >= 12 ? 'PM' : 'AM'; 
+            h = h % 12; if(h===0) h=12; 
+            return `${h}:${mm} ${p}`; 
+        }
 
         function renderTable() {
             const tbody = document.getElementById('tableBody'); tbody.innerHTML = ''; 
-            
-            // 為了讓您的 2025/12/28 行程能正確顯示在「前七天」，我們需要一個參考點
-            // 如果現在真實時間還沒到 2025，這會顯示在後續行程。
-            // 為了方便您檢查，我這裡將「起始顯示日期」設為資料中最早的日期，或者真實的今天
-            // 實務上還是用真實今天：
             let today = getTodayZero();
-            
-            // 如果您希望測試時看到 2025 年的資料在上面，可以暫時把下面這行取消註解：
-            // today = new Date(2025, 11, 28); // 2025-12-28
+            const now = new Date(); document.getElementById('updateDate').innerText = 'updated: ' + (now.getMonth()+1)+'/'+now.getDate();
 
-            // 排序
-            schedules.sort((a,b) => { 
+            // 1. 合併手動與固定行程
+            let displayList = [];
+
+            // A. 手動行程
+            schedules.forEach((s, index) => {
+                let sObj = { ...s, _type: 'manual', _idx: index };
+                displayList.push(sObj);
+            });
+
+            // B. 固定行程 (產生未來 90 天，確保翻頁時有資料，但稍後顯示時會過濾)
+            if (fixedRules && fixedRules.length > 0) {
+                for(let i=0; i<90; i++) {
+                    let d = new Date(today); d.setDate(today.getDate() + i);
+                    let dayOfWeek = d.getDay(); 
+                    
+                    fixedRules.forEach(rule => {
+                        if(rule.days.includes(dayOfWeek)) {
+                            let dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+                            displayList.push({
+                                date: dateStr,
+                                time: rule.time,
+                                content: rule.content,
+                                location: rule.loc,
+                                color: 'fixed',
+                                _type: 'fixed'
+                            });
+                        }
+                    });
+                }
+            }
+
+            // 2. 排序
+            displayList.sort((a,b) => { 
                 let dA = strToDate(a.date), dB = strToDate(b.date);
                 if(dA.getTime() !== dB.getTime()) return dA - dB;
                 return (a.time||"") > (b.time||"") ? 1 : -1; 
             });
 
-            const now = new Date(); document.getElementById('updateDate').innerText = 'updated: ' + (now.getMonth()+1)+'/'+now.getDate();
-
-            // 1. 近 7 天
-            let renderedIdx = [];
+            // 3. 渲染 - 前 7 天 (包含手動 + 固定)
             for(let i=0; i<7; i++) {
                 let d = new Date(today); d.setDate(today.getDate()+i);
                 let dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-                let dayEvents = schedules.filter((s, idx) => { if(s.date === dateStr) { s._idx = idx; return true; } return false; });
-
+                
+                let dayEvents = displayList.filter(s => s.date === dateStr);
                 let combinedDateStr = `<strong>${formatDateShow(d)}</strong><br>${weekMap[d.getDay()]}`;
                 let isWeekend = (d.getDay() === 0 || d.getDay() === 6) ? 'is-weekend' : '';
 
@@ -505,58 +412,80 @@
                 } else {
                     let first = true;
                     dayEvents.forEach(evt => {
-                        renderedIdx.push(evt._idx);
                         let contentHtml = evt.content;
                         if(evt.time) contentHtml = `<strong>${displayTime(evt.time)}</strong> - ${evt.content}`;
                         
                         let rowClass = `bg-${evt.color}`;
                         if (first) rowClass += ' day-start';
 
+                        let btnsHtml = (evt._type === 'manual') 
+                            ? `<div class="act-btns" data-html2canvas-ignore="true"><button class="act-btn" onclick="editItem(${evt._idx})">✎</button><button class="act-btn" onclick="delItem(${evt._idx})" style="color:red">x</button></div>`
+                            : `<div class="act-btns" style="opacity:0.3; cursor:default;">🔒</div>`;
+
                         tbody.innerHTML += `<tr class="${rowClass}">
                             <td class="col-combined ${isWeekend}">${first ? combinedDateStr : ''}</td>
-                            <td class="col-item">${contentHtml}<div class="act-btns" data-html2canvas-ignore="true"><button class="act-btn" onclick="editItem(${evt._idx})">✎</button><button class="act-btn" onclick="delItem(${evt._idx})" style="color:red">x</button></div></td>
+                            <td class="col-item">${contentHtml}${btnsHtml}</td>
                             <td class="col-loc">${evt.location}</td>
                         </tr>`;
                         first = false;
                     });
                 }
             }
+
+            // 4. 渲染 - 後續行程 (Future) - V23 FIX: 這裡只顯示手動行程，過濾掉固定行程
+            let futureDateStart = new Date(today); futureDateStart.setDate(today.getDate() + 7);
             
-            // 2. 後續行程
-            let future = schedules.filter((s, idx) => !renderedIdx.includes(idx) && s.date !== 'TBD' && s.date !== 'REMINDER' && strToDate(s.date) >= today);
-            if(future.length > 0) {
-                tbody.innerHTML += `<tr class="day-start"><td colspan="3" style="background:#4472C4; color:white; font-weight:bold; text-align:center; padding:8px; font-size:13px;">後續行程</td></tr>`;
+            let futureEvents = displayList.filter(s => {
+                if (s.date === 'TBD' || s.date === 'REMINDER') return false;
+                
+                // V23 FIX: 如果是固定行程 (_type === 'fixed')，則不顯示在後續行程中
+                if (s._type === 'fixed') return false;
+
+                let d = strToDate(s.date);
+                return d >= futureDateStart;
+            });
+
+            if(futureEvents.length > 0) {
+                // V23 FIX: 改回中文 "後續行程"
+                tbody.innerHTML += `<tr class="day-start"><td colspan="3" style="background:#4f46e5; color:white; font-weight:bold; text-align:center; padding:8px; font-size:13px; letter-spacing:1px;">後續行程</td></tr>`;
                 let lastD = '';
                 let isFirstFuture = true;
-                future.forEach((evt) => {
+                
+                futureEvents.forEach((evt) => {
                     let d = strToDate(evt.date); let dStr = formatDateShow(d);
                     let isNewDay = (dStr !== lastD);
                     let combinedHtml = isNewDay ? `<strong>${dStr}</strong><br>${weekMap[d.getDay()]}` : '';
                     lastD = dStr;
                     
                     let contentHtml = evt.time ? `<strong>${displayTime(evt.time)}</strong> - ${evt.content}` : evt.content;
-                    let realIdx = schedules.indexOf(evt);
+                    
                     let rowClass = `bg-${evt.color}`;
                     if (isNewDay && !isFirstFuture) rowClass += ' day-start';
 
+                    let btnsHtml = (evt._type === 'manual') 
+                            ? `<div class="act-btns" data-html2canvas-ignore="true"><button class="act-btn" onclick="editItem(${evt._idx})">✎</button><button class="act-btn" onclick="delItem(${evt._idx})" style="color:red">x</button></div>`
+                            : `<div class="act-btns" style="opacity:0.3; cursor:default;">🔒</div>`;
+
                     tbody.innerHTML += `<tr class="${rowClass}">
                         <td class="col-combined">${combinedHtml}</td>
-                        <td class="col-item">${contentHtml}<div class="act-btns" data-html2canvas-ignore="true"><button class="act-btn" onclick="editItem(${realIdx})">✎</button><button class="act-btn" onclick="delItem(${realIdx})" style="color:red">x</button></div></td>
+                        <td class="col-item">${contentHtml}${btnsHtml}</td>
                         <td class="col-loc">${evt.location}</td>
                     </tr>`;
                     isFirstFuture = false;
                 });
             }
 
-            // 3. 待辦事項
+            // 5. 待辦事項
             let pending = schedules.filter((s, idx) => s.date === 'TBD' || s.date === 'REMINDER');
             if(pending.length > 0) {
-                tbody.innerHTML += `<tr class="day-start"><td colspan="3" style="background:#E1BEE7; color:#000; font-weight:bold; text-align:center; padding:8px; font-size:13px;">提提你 / 待辦事項</td></tr>`;
+                // V23 FIX: 改回中文 "提提你 / 待辦事項"
+                tbody.innerHTML += `<tr class="day-start"><td colspan="3" style="background:#a855f7; color:white; font-weight:bold; text-align:center; padding:8px; font-size:13px; letter-spacing:1px;">提提你 / 待辦事項</td></tr>`;
                 
                 pending.forEach((evt) => {
-                    let realIdx = schedules.indexOf(evt);
-                    let label = evt.date === 'REMINDER' ? '提提你' : '時間待定';
-                    let labelColor = evt.date === 'REMINDER' ? '#6a1b9a' : '#555';
+                    let realIdx = schedules.indexOf(evt); 
+                    // V23 FIX: 列表內的標籤也改回中文
+                    let label = evt.date === 'REMINDER' ? '提提你' : '待定';
+                    let labelColor = evt.date === 'REMINDER' ? '#9333ea' : '#6b7280';
                     let labelWeight = evt.date === 'REMINDER' ? 'bold' : 'normal';
 
                     tbody.innerHTML += `<tr class="bg-${evt.color}" style="border-top:1px solid #ddd;">
@@ -582,7 +511,6 @@
             let finalDate = d;
             if (mode === 'TBD') finalDate = 'TBD';
             if (mode === 'REMINDER') finalDate = 'REMINDER';
-            
             let finalTime = (mode === 'DATE') ? formatTimeInput(t) : '';
 
             schedules.push({ date: finalDate, time: finalTime, content: c, location: l, color: col });
@@ -597,11 +525,9 @@
         function delItem(idx) { if(confirm('刪除此事項？')) { schedules.splice(idx, 1); saveData(); renderTable(); } }
         function editItem(idx) {
             let s = schedules[idx];
-            if (s.date === 'TBD') {
-                document.getElementById('modeTBD').checked = true;
-            } else if (s.date === 'REMINDER') {
-                document.getElementById('modeReminder').checked = true;
-            } else {
+            if (s.date === 'TBD') document.getElementById('modeTBD').checked = true;
+            else if (s.date === 'REMINDER') document.getElementById('modeReminder').checked = true;
+            else {
                 document.getElementById('modeDate').checked = true;
                 document.getElementById('inputDate').value = s.date;
                 document.getElementById('inputTime').value = s.time ? s.time.replace(':','') : '';
@@ -638,24 +564,31 @@
         function toggleFixedEditor() {
             let area = document.getElementById('fixedEditorArea'); let main = document.getElementById('mainInputArea');
             if(area.classList.contains('hidden')) { area.classList.remove('hidden'); main.classList.add('hidden'); renderFixedList(); } 
-            else { area.classList.add('hidden'); main.classList.remove('hidden'); }
+            else { 
+                area.classList.add('hidden'); main.classList.remove('hidden'); 
+                renderTable();
+            }
         }
         function addFixedRule() {
             let cbs = document.querySelectorAll('.week-selector input:checked'); let days = Array.from(cbs).map(cb => parseInt(cb.value));
             let t = document.getElementById('fixTime').value; let c = document.getElementById('fixContent').value; let l = document.getElementById('fixLoc').value;
             if(days.length===0 || !c) { alert('請選星期並輸入事項'); return; }
-            fixedRules.push({ days: days, time: t, content: c, loc: l }); saveData(); renderFixedList();
+            fixedRules.push({ days: days, time: formatTimeInput(t), content: c, loc: l }); saveData(); 
+            renderFixedList();
+            renderTable();
             document.getElementById('fixContent').value = ''; document.getElementById('fixLoc').value = '';
         }
         function delFixedRule(idx) {
-            if(confirm('刪除規則？')) {
-                fixedRules.splice(idx, 1); saveData(); renderFixedList();
+            if(confirm('刪除規則？')) { 
+                fixedRules.splice(idx, 1); saveData(); 
+                renderFixedList(); 
+                renderTable();
             }
         }
         function renderFixedList() {
             let div = document.getElementById('fixedRulesList'); div.innerHTML = '';
             fixedRules.forEach((r, i) => {
-                let dStr = r.days.map(d => weekMap[d].replace('週','')).join(','); let tStr = r.time ? formatTimeInput(r.time) : '';
+                let dStr = r.days.map(d => weekMap[d].replace('週','')).join(','); let tStr = r.time ? displayTime(r.time) : '';
                 div.innerHTML += `<div class="manage-item"><div style="font-size:14px;"><span class="tag">週${dStr}</span> <b>${tStr}</b> ${r.content}</div><button class="btn btn-danger" style="width:auto; padding:5px 10px; margin:0; font-size:12px;" onclick="delFixedRule(${i})">刪</button></div>`;
             });
         }
