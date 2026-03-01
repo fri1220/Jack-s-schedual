@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Jack's Schedule V23 (Final CN)</title>
+    <title>Personal Schedule V23 (Custom Name)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
@@ -102,7 +102,30 @@
         .col-item { width: 62%; font-size: 15px; padding-left: 12px; color: #374151; } 
         .col-loc { width: 20%; font-size: 12px; color: #9ca3af; text-align: center; font-weight: 500; }
 
-        .header-main { background: linear-gradient(135deg, #ecfdf5, #d1fae5); color: #065f46; text-align: center; font-weight: 800; font-size: 1.6em; padding: 20px; }
+        /* Editable Title Style */
+        .header-main { 
+            background: linear-gradient(135deg, #ecfdf5, #d1fae5); 
+            color: #065f46; 
+            text-align: center; 
+            font-weight: 800; 
+            font-size: 1.6em; 
+            padding: 20px; 
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .header-main:hover { background: linear-gradient(135deg, #d1fae5, #a7f3d0); }
+        .header-main input {
+            background: transparent;
+            border: 2px dashed #059669;
+            color: #065f46;
+            font-weight: 800;
+            font-size: 1em;
+            text-align: center;
+            width: 80%;
+            border-radius: 8px;
+            font-family: inherit;
+        }
+
         .header-sub th { background-color: #fef9c3; color: #854d0e; font-size: 13px; font-weight: 700; padding: 8px; border-bottom: 1px solid #e5e7eb; }
         .is-weekend { color: #ef4444; }
 
@@ -266,7 +289,9 @@
                     <col style="width: 20%;">
                 </colgroup>
                 <thead>
-                    <tr><td colspan="3" class="header-main">Jack's Schedule</td></tr>
+                    <tr>
+                        <td colspan="3" class="header-main" id="scheduleTitle" onclick="editTitle()">Jack's Schedule</td>
+                    </tr>
                     <tr><td colspan="3" style="text-align:right; font-size:11px; border:none; padding:8px 12px; color:#6b7280; background:#f9fafb;" id="updateDate">updated: </td></tr>
                     <tr class="header-sub">
                         <th class="col-combined">日期</th>
@@ -283,6 +308,7 @@
         const DB_KEY_SCHEDULE = 'jack_schedule_v21'; 
         const DB_KEY_RULES = 'jack_rules_v21';
         const DB_KEY_LOCS = 'jack_locs_v21';
+        const DB_KEY_TITLE = 'jack_title_v21'; // 新增標題儲存的 Key
 
         const defaultRules = [{ days:[1,3,5], time:"1130", content:"GYM", loc:"" }];
         const defaultLocs = ["公司", "家裡", "喜粵8號", "蓮-大潭山", "MGM", "皇冠假日酒店"];
@@ -294,16 +320,47 @@
                 const sData = localStorage.getItem(DB_KEY_SCHEDULE);
                 const rData = localStorage.getItem(DB_KEY_RULES);
                 const lData = localStorage.getItem(DB_KEY_LOCS);
+                const tData = localStorage.getItem(DB_KEY_TITLE); // 讀取自定義標題
 
                 if (sData) schedules = JSON.parse(sData);
                 if (!rData) { fixedRules = JSON.parse(JSON.stringify(defaultRules)); saveData(); } else { fixedRules = JSON.parse(rData); }
                 if (!lData) { savedLocs = JSON.parse(JSON.stringify(defaultLocs)); saveData(); } else { savedLocs = JSON.parse(lData); }
+                
+                // 初始化標題
+                if (tData) {
+                    document.getElementById('scheduleTitle').innerText = tData;
+                }
 
                 document.getElementById('inputDate').valueAsDate = new Date();
                 toggleInputMode();
                 updateLocDatalist();
                 renderTable();
             } catch (e) { console.error(e); }
+        }
+
+        // 修改標題功能
+        function editTitle() {
+            const titleEl = document.getElementById('scheduleTitle');
+            const currentTitle = titleEl.innerText;
+            const input = document.createElement('input');
+            input.value = currentTitle;
+            
+            // 當失去焦點或按 Enter 時儲存
+            const save = () => {
+                const newTitle = input.value.trim() || "Jack's Schedule";
+                titleEl.innerText = newTitle;
+                localStorage.setItem(DB_KEY_TITLE, newTitle);
+                titleEl.onclick = editTitle; // 重新綁定點擊事件
+            };
+
+            input.onblur = save;
+            input.onkeydown = (e) => { if(e.key === 'Enter') save(); };
+
+            titleEl.innerHTML = '';
+            titleEl.appendChild(input);
+            titleEl.onclick = null; // 暫時移除點擊事件防止干擾
+            input.focus();
+            input.select();
         }
 
         function saveData() {
@@ -334,21 +391,15 @@
         function formatDateShow(d) { return (d.getMonth()+1) + '/' + d.getDate(); }
         function formatTimeInput(val) { if(!val) return ""; val = val.replace(/[^0-9]/g, ''); if(val.length === 3) val = "0" + val; if(val.length === 4) { let h = val.substring(0,2); let m = val.substring(2,4); if(parseInt(h)>23) h="23"; if(parseInt(m)>59) m="59"; return h + ":" + m; } return ""; }
 
-        // V23 FIX: 增強版時間顯示，解決 undefined 問題
         function displayTime(t) { 
             if(!t) return ""; 
-            // 移除可能存在的非數字字符 (除了冒號)
             let cleanRaw = t.replace(/[^0-9:]/g, '');
-            
-            // 如果輸入是 "1600" 這種純數字格式
             if(cleanRaw.indexOf(':') === -1 && cleanRaw.length === 4) {
                 cleanRaw = cleanRaw.substring(0,2) + ":" + cleanRaw.substring(2);
             }
-            
             let [hh, mm] = cleanRaw.split(':'); 
             if(!hh) hh = "00";
             if(!mm) mm = "00"; 
-            
             let h = parseInt(hh); 
             let p = h >= 12 ? 'PM' : 'AM'; 
             h = h % 12; if(h===0) h=12; 
@@ -360,53 +411,39 @@
             let today = getTodayZero();
             const now = new Date(); document.getElementById('updateDate').innerText = 'updated: ' + (now.getMonth()+1)+'/'+now.getDate();
 
-            // 1. 合併手動與固定行程
             let displayList = [];
-
-            // A. 手動行程
             schedules.forEach((s, index) => {
                 let sObj = { ...s, _type: 'manual', _idx: index };
                 displayList.push(sObj);
             });
 
-            // B. 固定行程 (產生未來 90 天，確保翻頁時有資料，但稍後顯示時會過濾)
             if (fixedRules && fixedRules.length > 0) {
                 for(let i=0; i<90; i++) {
                     let d = new Date(today); d.setDate(today.getDate() + i);
                     let dayOfWeek = d.getDay(); 
-                    
                     fixedRules.forEach(rule => {
                         if(rule.days.includes(dayOfWeek)) {
                             let dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
                             displayList.push({
-                                date: dateStr,
-                                time: rule.time,
-                                content: rule.content,
-                                location: rule.loc,
-                                color: 'fixed',
-                                _type: 'fixed'
+                                date: dateStr, time: rule.time, content: rule.content, location: rule.loc, color: 'fixed', _type: 'fixed'
                             });
                         }
                     });
                 }
             }
 
-            // 2. 排序
             displayList.sort((a,b) => { 
                 let dA = strToDate(a.date), dB = strToDate(b.date);
                 if(dA.getTime() !== dB.getTime()) return dA - dB;
                 return (a.time||"") > (b.time||"") ? 1 : -1; 
             });
 
-            // 3. 渲染 - 前 7 天 (包含手動 + 固定)
             for(let i=0; i<7; i++) {
                 let d = new Date(today); d.setDate(today.getDate()+i);
                 let dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-                
                 let dayEvents = displayList.filter(s => s.date === dateStr);
                 let combinedDateStr = `<strong>${formatDateShow(d)}</strong><br>${weekMap[d.getDay()]}`;
                 let isWeekend = (d.getDay() === 0 || d.getDay() === 6) ? 'is-weekend' : '';
-
                 if(dayEvents.length === 0) {
                     tbody.innerHTML += `<tr class="day-start"><td class="col-combined ${isWeekend}">${combinedDateStr}</td><td class="col-item"></td><td class="col-loc"></td></tr>`;
                 } else {
@@ -414,14 +451,11 @@
                     dayEvents.forEach(evt => {
                         let contentHtml = evt.content;
                         if(evt.time) contentHtml = `<strong>${displayTime(evt.time)}</strong> - ${evt.content}`;
-                        
                         let rowClass = `bg-${evt.color}`;
                         if (first) rowClass += ' day-start';
-
                         let btnsHtml = (evt._type === 'manual') 
                             ? `<div class="act-btns" data-html2canvas-ignore="true"><button class="act-btn" onclick="editItem(${evt._idx})">✎</button><button class="act-btn" onclick="delItem(${evt._idx})" style="color:red">x</button></div>`
                             : `<div class="act-btns" style="opacity:0.3; cursor:default;">🔒</div>`;
-
                         tbody.innerHTML += `<tr class="${rowClass}">
                             <td class="col-combined ${isWeekend}">${first ? combinedDateStr : ''}</td>
                             <td class="col-item">${contentHtml}${btnsHtml}</td>
@@ -432,40 +466,26 @@
                 }
             }
 
-            // 4. 渲染 - 後續行程 (Future) - V23 FIX: 這裡只顯示手動行程，過濾掉固定行程
             let futureDateStart = new Date(today); futureDateStart.setDate(today.getDate() + 7);
-            
             let futureEvents = displayList.filter(s => {
                 if (s.date === 'TBD' || s.date === 'REMINDER') return false;
-                
-                // V23 FIX: 如果是固定行程 (_type === 'fixed')，則不顯示在後續行程中
                 if (s._type === 'fixed') return false;
-
                 let d = strToDate(s.date);
                 return d >= futureDateStart;
             });
 
             if(futureEvents.length > 0) {
-                // V23 FIX: 改回中文 "後續行程"
                 tbody.innerHTML += `<tr class="day-start"><td colspan="3" style="background:#4f46e5; color:white; font-weight:bold; text-align:center; padding:8px; font-size:13px; letter-spacing:1px;">後續行程</td></tr>`;
-                let lastD = '';
-                let isFirstFuture = true;
-                
+                let lastD = ''; let isFirstFuture = true;
                 futureEvents.forEach((evt) => {
                     let d = strToDate(evt.date); let dStr = formatDateShow(d);
                     let isNewDay = (dStr !== lastD);
                     let combinedHtml = isNewDay ? `<strong>${dStr}</strong><br>${weekMap[d.getDay()]}` : '';
                     lastD = dStr;
-                    
                     let contentHtml = evt.time ? `<strong>${displayTime(evt.time)}</strong> - ${evt.content}` : evt.content;
-                    
                     let rowClass = `bg-${evt.color}`;
                     if (isNewDay && !isFirstFuture) rowClass += ' day-start';
-
-                    let btnsHtml = (evt._type === 'manual') 
-                            ? `<div class="act-btns" data-html2canvas-ignore="true"><button class="act-btn" onclick="editItem(${evt._idx})">✎</button><button class="act-btn" onclick="delItem(${evt._idx})" style="color:red">x</button></div>`
-                            : `<div class="act-btns" style="opacity:0.3; cursor:default;">🔒</div>`;
-
+                    let btnsHtml = `<div class="act-btns" data-html2canvas-ignore="true"><button class="act-btn" onclick="editItem(${evt._idx})">✎</button><button class="act-btn" onclick="delItem(${evt._idx})" style="color:red">x</button></div>`;
                     tbody.innerHTML += `<tr class="${rowClass}">
                         <td class="col-combined">${combinedHtml}</td>
                         <td class="col-item">${contentHtml}${btnsHtml}</td>
@@ -475,21 +495,15 @@
                 });
             }
 
-            // 5. 待辦事項
             let pending = schedules.filter((s, idx) => s.date === 'TBD' || s.date === 'REMINDER');
             if(pending.length > 0) {
-                // V23 FIX: 改回中文 "提提你 / 待辦事項"
                 tbody.innerHTML += `<tr class="day-start"><td colspan="3" style="background:#a855f7; color:white; font-weight:bold; text-align:center; padding:8px; font-size:13px; letter-spacing:1px;">提提你 / 待辦事項</td></tr>`;
-                
                 pending.forEach((evt) => {
                     let realIdx = schedules.indexOf(evt); 
-                    // V23 FIX: 列表內的標籤也改回中文
                     let label = evt.date === 'REMINDER' ? '提提你' : '待定';
                     let labelColor = evt.date === 'REMINDER' ? '#9333ea' : '#6b7280';
-                    let labelWeight = evt.date === 'REMINDER' ? 'bold' : 'normal';
-
                     tbody.innerHTML += `<tr class="bg-${evt.color}" style="border-top:1px solid #ddd;">
-                        <td class="col-combined" style="color:${labelColor}; font-weight:${labelWeight};">${label}</td>
+                        <td class="col-combined" style="color:${labelColor}; font-weight:bold;">${label}</td>
                         <td class="col-item">${evt.content}<div class="act-btns" data-html2canvas-ignore="true"><button class="act-btn" onclick="editItem(${realIdx})">✎</button><button class="act-btn" onclick="delItem(${realIdx})" style="color:red">x</button></div></td>
                         <td class="col-loc">${evt.location}</td>
                     </tr>`;
@@ -497,6 +511,7 @@
             }
         }
 
+        // 原有的輔助功能保持不變...
         function addSchedule() {
             let mode = document.querySelector('input[name="inputMode"]:checked').value;
             let d = document.getElementById('inputDate').value;
@@ -504,18 +519,14 @@
             let c = document.getElementById('inputItem').value; 
             let l = document.getElementById('inputLoc').value;
             let col = document.getElementById('inputColor').value;
-
             if(!c) { alert('請輸入事項內容'); return; }
             if(mode === 'DATE' && !d) { alert('請輸入日期'); return; }
-
             let finalDate = d;
             if (mode === 'TBD') finalDate = 'TBD';
             if (mode === 'REMINDER') finalDate = 'REMINDER';
             let finalTime = (mode === 'DATE') ? formatTimeInput(t) : '';
-
             schedules.push({ date: finalDate, time: finalTime, content: c, location: l, color: col });
             saveData(); renderTable();
-            
             document.getElementById('inputItem').value = ''; 
             document.getElementById('inputLoc').value = '';
             document.getElementById('inputTime').value = ''; 
@@ -564,27 +575,17 @@
         function toggleFixedEditor() {
             let area = document.getElementById('fixedEditorArea'); let main = document.getElementById('mainInputArea');
             if(area.classList.contains('hidden')) { area.classList.remove('hidden'); main.classList.add('hidden'); renderFixedList(); } 
-            else { 
-                area.classList.add('hidden'); main.classList.remove('hidden'); 
-                renderTable();
-            }
+            else { area.classList.add('hidden'); main.classList.remove('hidden'); renderTable(); }
         }
         function addFixedRule() {
             let cbs = document.querySelectorAll('.week-selector input:checked'); let days = Array.from(cbs).map(cb => parseInt(cb.value));
             let t = document.getElementById('fixTime').value; let c = document.getElementById('fixContent').value; let l = document.getElementById('fixLoc').value;
             if(days.length===0 || !c) { alert('請選星期並輸入事項'); return; }
             fixedRules.push({ days: days, time: formatTimeInput(t), content: c, loc: l }); saveData(); 
-            renderFixedList();
-            renderTable();
+            renderFixedList(); renderTable();
             document.getElementById('fixContent').value = ''; document.getElementById('fixLoc').value = '';
         }
-        function delFixedRule(idx) {
-            if(confirm('刪除規則？')) { 
-                fixedRules.splice(idx, 1); saveData(); 
-                renderFixedList(); 
-                renderTable();
-            }
-        }
+        function delFixedRule(idx) { if(confirm('刪除規則？')) { fixedRules.splice(idx, 1); saveData(); renderFixedList(); renderTable(); } }
         function renderFixedList() {
             let div = document.getElementById('fixedRulesList'); div.innerHTML = '';
             fixedRules.forEach((r, i) => {
@@ -598,8 +599,8 @@
         function deletePast() { if(confirm('清除過期行程？')) { let today = getTodayZero(); schedules = schedules.filter(s => s.date==='TBD' || s.date==='REMINDER' || strToDate(s.date) >= today); saveData(); renderTable(); } }
         function clearData() { if(confirm('清空所有行程？')) { schedules = []; saveData(); renderTable(); } }
         function exportImage() { let el = document.getElementById("captureArea"); html2canvas(el, { scale: 2, backgroundColor: "#ffffff" }).then(canvas => { let link = document.createElement('a'); link.download = 'Schedule.png'; link.href = canvas.toDataURL("image/png"); link.click(); }); }
-        function downloadBackup() { let data = { s: schedules, r: fixedRules, l: savedLocs }; let dl = document.createElement('a'); dl.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data)); dl.download = "backup.json"; dl.click(); }
-        function restoreBackup(input) { let file = input.files[0]; if(!file) return; let reader = new FileReader(); reader.onload = function(e) { try { let d = JSON.parse(e.target.result); if(d.s) schedules = d.s; if(d.r) fixedRules = d.r; if(d.l) savedLocs = d.l; saveData(); location.reload(); } catch(err) { alert('檔案錯誤'); } }; reader.readAsText(file); }
+        function downloadBackup() { let data = { s: schedules, r: fixedRules, l: savedLocs, t: localStorage.getItem(DB_KEY_TITLE) }; let dl = document.createElement('a'); dl.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data)); dl.download = "backup.json"; dl.click(); }
+        function restoreBackup(input) { let file = input.files[0]; if(!file) return; let reader = new FileReader(); reader.onload = function(e) { try { let d = JSON.parse(e.target.result); if(d.s) schedules = d.s; if(d.r) fixedRules = d.r; if(d.l) savedLocs = d.l; if(d.t) localStorage.setItem(DB_KEY_TITLE, d.t); saveData(); location.reload(); } catch(err) { alert('檔案錯誤'); } }; reader.readAsText(file); }
 
         initApp();
     </script>
